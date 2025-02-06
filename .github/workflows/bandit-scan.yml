@@ -29,6 +29,11 @@ jobs:
         name: bandit-findings
         path: bandit_report.json
 
+  
+  image_scan:
+    name: Build Image and Run Image Scan
+    runs-on: ubuntu-latest
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
@@ -36,21 +41,23 @@ jobs:
     - name: Set up Docker
       uses: docker-practice/actions-setup-docker@v1
       with:
-        docker_version: '20.10.7'
+        docker_version: '27.5.1'
 
     - name: Build Docker Image
       run: docker build -f Dockerfile -t myapp:latest .
 
     - name: Docker Scout Scan
-      run: |
-        curl -fsSL https://raw.githubusercontent.com/docker/scout-cli/main/install.sh -o install-scout.sh
-        sh install-scout.sh
-        echo ${{ secrets.DOCKER_PWD }} | docker login -u ${{ secrets.DOCKER_USER }} --password-stdin
-        docker scout quickview
-        docker scout cves
+      uses: docker/scout-action@v1.15.0
+      with:
+        dockerhub-user: ${{ secrets.DOCKER_USER }}
+        dockerhub-password: ${{ secrets.DOCKER_PWD }}
+        command: quickview,cves
+        only-severities: critical,high
+        sarif-file: scout-report.sarif
        
     - name: Upload Artifact
       uses: actions/upload-artifact@v4
+      if: always()
       with:
           name: docker-scout-findings
           path: scout-report.sarif
