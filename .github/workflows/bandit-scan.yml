@@ -28,3 +28,36 @@ jobs:
       with:
         name: bandit-findings
         path: bandit_report.json
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Docker
+      uses: docker-practice/actions-setup-docker@v1
+      with:
+        docker_version: '20.10.7'
+
+    - name: Build Docker Image
+      run: docker build -f Dockerfile -t myapp:latest .
+
+    - name: Docker Scout Scan
+      run: |
+        curl -fsSL https://raw.githubusercontent.com/docker/scout-cli/main/install.sh -o install-scout.sh
+        sh install-scout.sh
+        echo ${{ secrets.DOCKER_PWD }} | docker login -u ${{ secrets.DOCKER_USER }} --password-stdin
+        docker scout quickview
+        docker scout cves
+       
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v4
+      with:
+          name: docker-scout-findings
+          path: scout-report.sarif
+          if-no-files-found: warn
+          compression-level: 6
+          overwrite: false
+          include-hidden-files: false
+      env:
+          DOCKER_CONFIG: /home/runner/.docker
+          DOCKER_CLI_EXPERIMENTAL: enabled
