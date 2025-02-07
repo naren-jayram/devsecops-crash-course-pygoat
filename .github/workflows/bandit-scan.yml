@@ -43,14 +43,15 @@ jobs:
 
     - name: Build Docker Image
       run: |
-        docker build -f Dockerfile -t myapp:latest .
         RUN apt-get update && apt-get install --no-install-recommends -y \
             dnsutils \
             libpq-dev=11.16-0+deb10u1 \
             python3-dev=3.7.3-1 && \
             apt-get clean && \
             rm -rf /var/lib/apt/lists/*
-
+        
+        docker build -f Dockerfile -t myapp:latest .
+        
     - name: Docker Scout Scan
       uses: docker/scout-action@v1.15.0
       with:
