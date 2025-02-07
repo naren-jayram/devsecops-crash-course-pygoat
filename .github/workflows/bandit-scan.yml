@@ -38,19 +38,19 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
 
-    - name: Set up Docker
-      uses: docker/setup-buildx-action@v1
-
-    - name: Build Docker Image
-      run: |
-        RUN apt-get update && apt-get install --no-install-recommends -y \
+    - name: Pre-requisite to build Docker
+      run: apt-get update && apt-get install --no-install-recommends -y \
             dnsutils \
             libpq-dev=11.16-0+deb10u1 \
             python3-dev=3.7.3-1 && \
             apt-get clean && \
             rm -rf /var/lib/apt/lists/*
-        
-        docker build -f Dockerfile -t myapp:latest .
+
+    - name: Set up Docker
+      uses: docker/setup-buildx-action@v1
+
+    - name: Build Docker Image
+      run: docker build -f Dockerfile -t myapp:latest .
         
     - name: Docker Scout Scan
       uses: docker/scout-action@v1.15.0
